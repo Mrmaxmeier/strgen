@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Mrmaxmeier/strgen"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/Pixelgaffer/dicod/strgen"
 )
 
 func TestChoice(t *testing.T) {
