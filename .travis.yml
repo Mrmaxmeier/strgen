@@ -12,7 +12,7 @@ env:
     - BUILD_GOOS=windows
 install:
   - go get golang.org/x/tools/cmd/vet
-  - go get -v github.com/Mrmaxmeier/strgen
+  - go get -v -t github.com/Mrmaxmeier/strgen
 script:
   - go build
   - go fmt ./...
