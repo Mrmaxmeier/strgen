@@ -16,21 +16,21 @@ func TestBasicText(t *testing.T) {
 
 func TestDone(t *testing.T) {
 	test := func(after int) {
-		g := &Generator{source: "\\[0..]"}
-		assert.Nil(t, g.configure())
-		assert.Equal(t, int64(-1), g.amount)
+		g := &Generator{Source: "\\[0..]"}
+		assert.Nil(t, g.Configure())
+		assert.Equal(t, int64(-1), g.Amount)
 		var wg sync.WaitGroup
 		wg.Add(1)
 		go func() {
-			g.generate()
+			g.Generate()
 			wg.Done()
 		}()
 		for c := 0; c < after; c++ {
-			_, err := g.next()
+			_, err := g.Next()
 			assert.Nil(t, err)
 		}
-		g.kill()
-		_, err := g.next()
+		g.Close()
+		_, err := g.Next()
 		assert.NotNil(t, err)
 		wg.Wait()
 	}
