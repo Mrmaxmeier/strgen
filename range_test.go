@@ -32,7 +32,7 @@ func TestRangeAmount(t *testing.T) {
 	assertAmount("\\[-42..]", -1)
 }
 
-func ExampleRange() {
+func ExampleRangeIterator() {
 	c, _, _ := GenerateStrings("\\[0..0.5..2]")
 	for s := range c {
 		fmt.Println(s)

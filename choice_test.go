@@ -18,7 +18,7 @@ func TestChoice(t *testing.T) {
 	assert.Equal(t, int64(3), amount, "should produce three results")
 }
 
-func ExampleChoice() {
+func ExampleChoiceIterator() {
 	c, _, _ := GenerateStrings("\\(foo|bar|baz)")
 	for s := range c {
 		fmt.Println(s)

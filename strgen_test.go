@@ -15,22 +15,26 @@ func TestBasicText(t *testing.T) {
 }
 
 func TestDone(t *testing.T) {
-	g := &Generator{source: "\\[0..]"}
-	assert.Nil(t, g.configure())
-	assert.Equal(t, int64(-1), g.amount)
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		g.generate()
-		wg.Done()
-	}()
-	var counter int
-	for _ = range g.results {
-		counter++
-		if counter == 42 {
-			g.kill()
+	test := func(after int) {
+		g := &Generator{source: "\\[0..]"}
+		assert.Nil(t, g.configure())
+		assert.Equal(t, int64(-1), g.amount)
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			g.generate()
+			wg.Done()
+		}()
+		for c := 0; c < after; c++ {
+			_, err := g.next()
+			assert.Nil(t, err)
 		}
+		g.kill()
+		_, err := g.next()
+		assert.NotNil(t, err)
+		wg.Wait()
 	}
-	assert.Equal(t, 42, counter, "should terminate after 42 results")
-	wg.Wait()
+	for amount := 1; amount < 20; amount++ {
+		test(amount)
+	}
 }

@@ -11,6 +11,7 @@ type Generator struct {
 	err       error
 	amount    int64
 	left      int64
+	current   int64
 	infinite  bool
 	doneCh    chan interface{}
 	results   chan string
@@ -86,27 +87,27 @@ func (g *Generator) configure() error {
 
 func (g *Generator) generate() {
 	g.left = g.amount
-	for {
+	for g.alive() {
 		s := ""
 		for i := 0; i < len(g.iterators); i++ {
 			s += g.iterators[i].get()
 			g.iterators[i].cycle()
 		}
 		select {
-		case <-g.doneCh:
-			close(g.results)
-			return
 		case g.results <- s:
+			g.current++
 			if !g.infinite {
 				g.left--
 				if g.iterators[len(g.iterators)-1].finished() {
 					g.kill()
-					close(g.results)
-					return
+					break
 				}
 			}
+		case <-g.doneCh:
+			break
 		}
 	}
+	close(g.results)
 }
 
 func (g *Generator) alive() bool {
@@ -130,6 +131,9 @@ func (g *Generator) next() (s string, err error) {
 		err = fmt.Errorf("channel closed")
 		return
 	case s = <-g.results:
+		if !g.alive() {
+			err = fmt.Errorf("channel closed")
+		}
 		return
 	}
 }
