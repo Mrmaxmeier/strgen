@@ -161,9 +161,7 @@ func lexRange(l *lexer) stateFn {
 func lexChoice(l *lexer) stateFn {
 	for {
 		if strings.HasPrefix(l.input[l.pos:], ")") {
-			if l.pos > l.start {
-				l.emit(itemText)
-			}
+			l.emit(itemText)
 			l.next()
 			l.emit(itemIterEnd)
 			return lexText

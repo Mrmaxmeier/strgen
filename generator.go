@@ -6,13 +6,29 @@ import (
 	"github.com/bradfitz/slice"
 )
 
-func GenerateStrings(optionGen string) (<-chan string, int64, error) {
-	_, items := lex(optionGen)
-	var iterators []Iterator
+type Generator struct {
+	source    string
+	err       error
+	amount    int64
+	left      int64
+	infinite  bool
+	doneCh    chan interface{}
+	results   chan string
+	iterators []Iterator
+}
+
+func (g *Generator) configure() error {
+	if g.results == nil {
+		g.results = make(chan string)
+	}
+	if g.doneCh == nil {
+		g.doneCh = make(chan interface{})
+	}
+	_, items := lex(g.source)
 	var currIter Iterator
 	emit := func() {
 		currIter.configure()
-		iterators = append(iterators, currIter)
+		g.iterators = append(g.iterators, currIter)
 		currIter = nil
 	}
 	for item := range items {
@@ -32,55 +48,97 @@ func GenerateStrings(optionGen string) (<-chan string, int64, error) {
 			emit()
 		case itemEOF:
 		case itemError:
-			return nil, 0, fmt.Errorf(item.val)
+			g.err = fmt.Errorf(item.val)
+			return g.err
 		default:
 			currIter.push(item)
 		}
 	}
 
-	sortable := make([]Iterator, len(iterators))
-	for i := 0; i < len(iterators); i++ {
-		err := iterators[i].configure()
+	sortable := make([]Iterator, len(g.iterators))
+	for i := 0; i < len(g.iterators); i++ {
+		err := g.iterators[i].configure()
 		if err != nil {
-			return nil, 0, err
+			g.err = err
+			return err
 		}
-		sortable[i] = iterators[i]
+		sortable[i] = g.iterators[i]
 	}
 	slice.Sort(sortable[:], func(i, j int) bool {
 		return sortable[i].length() < sortable[j].length() || sortable[j].length() == -1
 	})
-	isInfinite := false
-	var resultAmount int64
 	cyclepos := 1
 	for i := 0; i < len(sortable); i++ {
 		sortable[i].setCyclePos(cyclepos)
 		//fmt.Printf("%+v\n", sortable[i])
 		cyclepos *= sortable[i].length()
 		if sortable[i].length() == -1 {
-			isInfinite = true
+			g.infinite = true
 		}
 	}
-	if isInfinite {
-		resultAmount = -1
+	if g.infinite {
+		g.amount = -1
 	} else {
-		resultAmount = int64(cyclepos) // * sortable[len(sortable)-1].length())
+		g.amount = int64(cyclepos)
 	}
+	return nil
+}
 
-	results := make(chan string)
-
-	go func() {
-		for {
-			s := ""
-			for i := 0; i < len(iterators); i++ {
-				s += iterators[i].get()
-				iterators[i].cycle()
-			}
-			results <- s
-			if iterators[len(iterators)-1].finished() {
-				close(results)
-				return
+func (g *Generator) generate() {
+	g.left = g.amount
+	for {
+		s := ""
+		for i := 0; i < len(g.iterators); i++ {
+			s += g.iterators[i].get()
+			g.iterators[i].cycle()
+		}
+		select {
+		case <-g.doneCh:
+			close(g.results)
+			return
+		case g.results <- s:
+			if !g.infinite {
+				g.left--
+				if g.iterators[len(g.iterators)-1].finished() {
+					g.kill()
+					close(g.results)
+					return
+				}
 			}
 		}
-	}()
-	return results, resultAmount, nil
+	}
+}
+
+func (g *Generator) alive() bool {
+	select {
+	case <-g.doneCh:
+		return false
+	default:
+		return true
+	}
+}
+
+func (g *Generator) kill() {
+	if g.alive() {
+		close(g.doneCh)
+	}
+}
+
+func (g *Generator) next() (s string, err error) {
+	select {
+	case <-g.doneCh:
+		err = fmt.Errorf("channel closed")
+		return
+	case s = <-g.results:
+		return
+	}
+}
+
+func GenerateStrings(optionGen string) (<-chan string, int64, error) {
+	g := Generator{source: optionGen}
+	if g.configure() != nil {
+		return nil, 0, g.err
+	}
+	go g.generate()
+	return g.results, g.amount, g.err
 }
