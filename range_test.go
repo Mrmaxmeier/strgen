@@ -10,7 +10,7 @@ import (
 func TestRangeAmount(t *testing.T) {
 	assertAmount := func(s string, amount int64) {
 		_, actual, err := GenerateStrings(s)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, amount, actual, fmt.Sprintf("%v should produce %v results", s, amount))
 	}
 	// Finite, Integer ranges
@@ -48,11 +48,23 @@ func ExampleRangeIterator() {
 func TestInvalidRange(t *testing.T) {
 	var err error
 	_, _, err = GenerateStrings("\\[0..bar.\\]foo")
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 	_, _, err = GenerateStrings("\\[5..1..0]")
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 	_, _, err = GenerateStrings("\\[0..1..x]")
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 	_, _, err = GenerateStrings("\\[0..1/2]")
-	assert.NotNil(t, err)
+	assert.Error(t, err)
+}
+
+func BenchmarkConfigFiniteRange(b *testing.B) {
+	_BenchmarkConfig("\\[0..10]", b)
+}
+
+func BenchmarkConfigInfiniteRange(b *testing.B) {
+	_BenchmarkConfig("\\[0..]", b)
+}
+
+func BenchmarkConfigStepRange(b *testing.B) {
+	_BenchmarkConfig("\\[10..-1..0]", b)
 }

@@ -2,6 +2,7 @@ package strgen
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/bradfitz/slice"
 )
@@ -125,17 +126,18 @@ func (g *Generator) Alive() bool {
 func (g *Generator) Close() {
 	if g.Alive() {
 		close(g.DoneCh)
+		runtime.Gosched()
 	}
 }
 
 func (g *Generator) Next() (s string, err error) {
+	if !g.Alive() {
+		err = fmt.Errorf("channel closed")
+	}
 	select {
 	case <-g.DoneCh:
 		err = fmt.Errorf("channel closed")
 	case s = <-g.Results:
-		if !g.Alive() {
-			err = fmt.Errorf("channel closed")
-		}
 	}
 	return
 }
