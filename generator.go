@@ -107,6 +107,10 @@ func (g *Generator) Generate() {
 		}
 	}
 	close(g.Results)
+
+	for i := 0; i < len(g.Iterators); i++ {
+		g.Iterators[i].cleanup()
+	}
 }
 
 func (g *Generator) Alive() bool {

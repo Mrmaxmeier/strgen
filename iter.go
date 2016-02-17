@@ -8,6 +8,7 @@ type Iterator interface {
 	length() int
 	finished() bool
 	setCyclePos(int)
+	cleanup()
 }
 
 type TextIterator struct {
@@ -21,6 +22,7 @@ func (i *TextIterator) configure() (e error) { return }
 func (i *TextIterator) length() int          { return 1 }
 func (i *TextIterator) finished() bool       { return true }
 func (i *TextIterator) setCyclePos(int)      {}
+func (i *TextIterator) cleanup()             {}
 
 type IteratorsByLength []Iterator
 

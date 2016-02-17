@@ -71,9 +71,11 @@ func (i *ExpressionIterator) configure() error {
 		return i.err
 	}
 	i.state = lua.NewState()
-	// i.state.Close()
 	return nil
 }
 func (i *ExpressionIterator) length() int         { return i.cycleLength }
 func (i *ExpressionIterator) finished() bool      { return i.currentCycle == 0 && i.tmpCycle == 0 }
 func (i *ExpressionIterator) setCyclePos(pos int) { i.cyclepos = pos }
+func (i *ExpressionIterator) cleanup() {
+	i.state.Close()
+}

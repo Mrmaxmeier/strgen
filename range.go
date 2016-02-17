@@ -117,3 +117,4 @@ func (i *RangeIterator) configure() error {
 func (i *RangeIterator) length() int         { return i.cycleLength }
 func (i *RangeIterator) finished() bool      { return i.currentCycle == 0 && i.tmpCycle == 0 }
 func (i *RangeIterator) setCyclePos(pos int) { i.cyclepos = pos }
+func (i *RangeIterator) cleanup()            {}

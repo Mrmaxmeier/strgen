@@ -23,3 +23,4 @@ func (i *ChoiceIterator) configure() (e error) { return }
 func (i *ChoiceIterator) length() int          { return len(i.choices) }
 func (i *ChoiceIterator) finished() bool       { return i.currentCycle == 0 && i.tmpCycle == 0 }
 func (i *ChoiceIterator) setCyclePos(pos int)  { i.cyclepos = pos }
+func (i *ChoiceIterator) cleanup()             {}
