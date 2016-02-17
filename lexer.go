@@ -29,6 +29,8 @@ const (
 	itemRangeSep
 	itemChoice
 	itemChoiceSep
+	itemExpr
+	itemExprSep
 	itemIterEnd
 	itemDot
 	itemEOF
@@ -178,6 +180,26 @@ func lexChoice(l *lexer) stateFn {
 	}
 }
 
+func lexExpr(l *lexer) stateFn {
+	for {
+		if strings.HasPrefix(l.input[l.pos:], "}") { // TODO: escape IterEnd!
+			l.emit(itemText)
+			l.next()
+			l.emit(itemIterEnd)
+			return lexText
+		}
+		switch r := l.next(); {
+		case r == eof:
+			return l.errorf("unclosed choice")
+		case r == '$':
+			l.backup()
+			l.emit(itemText)
+			l.next()
+			l.emit(itemExprSep)
+		}
+	}
+}
+
 func lexText(l *lexer) stateFn {
 	for {
 		if strings.HasPrefix(l.input[l.pos:], "\\(") {
@@ -191,6 +213,12 @@ func lexText(l *lexer) stateFn {
 			l.skip(2)
 			l.emit(itemRange)
 			return lexRange
+		}
+		if strings.HasPrefix(l.input[l.pos:], "\\{") {
+			l.emit(itemText)
+			l.skip(2)
+			l.emit(itemExpr)
+			return lexExpr
 		}
 		if l.next() == eof {
 			break

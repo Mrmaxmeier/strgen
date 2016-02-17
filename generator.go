@@ -28,7 +28,6 @@ func (g *Generator) Configure() error {
 	_, items := lex(g.Source)
 	var currIter Iterator
 	emit := func() {
-		currIter.configure()
 		g.Iterators = append(g.Iterators, currIter)
 		currIter = nil
 	}
@@ -45,6 +44,8 @@ func (g *Generator) Configure() error {
 			} else {
 				currIter.push(item)
 			}
+		case itemExpr:
+			currIter = &ExpressionIterator{code: item.val}
 		case itemIterEnd:
 			emit()
 		case itemEOF:
