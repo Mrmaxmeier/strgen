@@ -3,8 +3,7 @@ package strgen
 import (
 	"fmt"
 	"runtime"
-
-	"github.com/bradfitz/slice"
+	"sort"
 )
 
 type Generator struct {
@@ -57,7 +56,7 @@ func (g *Generator) Configure() error {
 		}
 	}
 
-	sortable := make([]Iterator, len(g.Iterators))
+	sortable := make(IteratorsByLength, len(g.Iterators))
 	for i := 0; i < len(g.Iterators); i++ {
 		err := g.Iterators[i].configure()
 		if err != nil {
@@ -66,9 +65,7 @@ func (g *Generator) Configure() error {
 		}
 		sortable[i] = g.Iterators[i]
 	}
-	slice.Sort(sortable[:], func(i, j int) bool {
-		return sortable[i].length() < sortable[j].length() || sortable[j].length() == -1
-	})
+	sort.Sort(sortable)
 	cyclepos := 1
 	for i := 0; i < len(sortable); i++ {
 		sortable[i].setCyclePos(cyclepos)

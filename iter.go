@@ -21,3 +21,15 @@ func (i *TextIterator) configure() (e error) { return }
 func (i *TextIterator) length() int          { return 1 }
 func (i *TextIterator) finished() bool       { return true }
 func (i *TextIterator) setCyclePos(int)      {}
+
+type IteratorsByLength []Iterator
+
+func (s IteratorsByLength) Len() int {
+	return len(s)
+}
+func (s IteratorsByLength) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s IteratorsByLength) Less(i, j int) bool {
+	return s[i].length() < s[j].length()
+}
