@@ -63,6 +63,7 @@ func (i *ExpressionIterator) get() string {
 		return i.lastComputed.value
 	}
 	i.lastComputed.value = i.state.Get(-1).String()
+	i.state.Pop(1)
 	return i.lastComputed.value
 }
 

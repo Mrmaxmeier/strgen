@@ -14,6 +14,14 @@ func TestExprBasics(t *testing.T) {
 	assert.Equal(t, "4", <-values)
 }
 
+func TestExprInf(t *testing.T) {
+	values, amount, err := GenerateStrings("\\{-1$x}")
+	assert.Equal(t, int64(-1), amount)
+	assert.NoError(t, err)
+	assert.Equal(t, "0", <-values)
+	assert.Equal(t, "1", <-values)
+}
+
 func TestExprRespectsCycle(t *testing.T) {
 	values, amount, _ := GenerateStrings("\\{2$x} \\[0..5]")
 	assert.Equal(t, int64(2*6), amount)
@@ -39,4 +47,18 @@ func TestExprInvalid(t *testing.T) {
 	assert.Error(t, err)
 	_, _, err = GenerateStrings("\\{3$x")
 	assert.Error(t, err)
+}
+
+func BenchmarkConfigExpr(b *testing.B) {
+	_BenchmarkConfig("\\{1$x}", b)
+}
+
+func BenchmarkReadExpr(b *testing.B) {
+	g := Generator{Source: "\\{-1$x}"}
+	g.Configure()
+	go g.Generate()
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		g.Next()
+	}
 }
