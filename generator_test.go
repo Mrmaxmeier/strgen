@@ -18,6 +18,19 @@ func TestGenerator(t *testing.T) {
 	assert.NotEmpty(t, g.Iterators)
 }
 
+func TestRangeAmountAlive(t *testing.T) {
+	g := Generator{Source: "blah \\(a|b) \\[1..5] \\(foo|bar)"}
+	g.Configure()
+	go g.Generate()
+	assert.Equal(t, int64(20), g.Amount)
+	for i := 0; i < 20; i++ {
+		g.Next()
+		assert.True(t, g.Alive(), fmt.Sprintf("cycle %d", i))
+	}
+	g.Next()
+	assert.False(t, g.Alive())
+}
+
 func ExampleGenerator() {
 	g := Generator{Source: "teststr"}
 	g.Configure()

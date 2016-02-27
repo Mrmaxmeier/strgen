@@ -97,7 +97,7 @@ func (g *Generator) Generate() {
 			g.Current++
 			if !g.Infinite {
 				g.Left--
-				if g.Iterators[len(g.Iterators)-1].finished() {
+				if g.Left <= 0 {
 					g.Close()
 					break
 				}
