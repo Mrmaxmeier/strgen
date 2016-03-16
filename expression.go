@@ -71,7 +71,13 @@ func (i *ExpressionIterator) configure() error {
 	if i.err != nil {
 		return i.err
 	}
-	i.state = lua.NewState()
+
+	i.state = lua.NewState(lua.Options{
+		CallStackSize: 120,
+		RegistrySize:  120 * 20,
+		SkipOpenLibs:  true,
+	})
+
 	return nil
 }
 func (i *ExpressionIterator) length() int         { return i.cycleLength }

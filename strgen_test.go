@@ -14,7 +14,7 @@ func TestBasicText(t *testing.T) {
 	assert.Equal(t, "foo bar", <-channel, "should produce the correct result")
 }
 
-func TestDone(t *testing.T) {
+func TestClose(t *testing.T) {
 	test := func(after int) {
 		g := &Generator{Source: "\\[0..]"}
 		assert.NoError(t, g.Configure())
